@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zhuhu Expense - View Graph</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 font-sans flex h-screen overflow-hidden">
+
+    <aside class="w-64 bg-white shadow-md flex flex-col justify-between hidden md:flex">
+        <div class="p-6">
+            <a href="/home"><h2 class="text-2xl font-bold text-blue-600 mb-8">Zhuhu Expense</h2></a>
+            <nav class="space-y-4">
+                <a href="/home" class="block text-gray-600 hover:bg-[#FFC3C0] py-2 px-4 rounded">HOME</a>
+                <a href="/edit" class="block text-gray-600 hover:bg-[#FFFFD2] py-2 px-4 rounded">EDIT EXPENSES</a>
+                <a href="/graph" class="block text-[#4A6C3F] font-bold bg-[#BDDCB3] py-2 px-4 rounded">VIEW GRAPH</a>
+                <a href="/report" class="block text-gray-600 hover:bg-[#D4E0FA] py-2 px-4 rounded">VIEW REPORT</a>
+                <a href="/goals" class="block text-gray-600 hover:bg-[#BCB2E6] py-2 px-4 rounded">VIEW GOALS</a>
+                <a href="/chat" class="block text-gray-600 hover:bg-[#F0C7F0] py-2 px-4 rounded">TALK TO AI CHATBOT</a>
+            </nav>
+        </div>
+        <div class="p-6 border-t">
+            <a href="/" class="block text-center w-full border border-red-500 text-red-500 hover:bg-red-50 py-2 rounded">Log out</a>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col bg-[#D9EDBA] overflow-y-auto">
+        
+        <div class="bg-[white] border-b p-4 flex justify-center items-center space-x-6">
+            <a href="/graph?week={{ current_offset - 1 }}&category={{ current_cat or '' }}" class="text-gray-400 hover:text-blue-600 text-2xl font-bold">◀</a>
+            <div class="border-2 border-gray-300 px-8 py-1 rounded text-gray-700 font-semibold uppercase tracking-widest">
+                {{ week_label if current_offset != 0 else "THIS WEEK (" + week_label + ")" }}
+            </div>
+            <a href="/graph?week={{ current_offset + 1 }}&category={{ current_cat or '' }}" class="text-gray-400 hover:text-blue-600 text-2xl font-bold">▶</a>
+        </div>
+
+        <div class="p-8 relative">
+            <h1 class="text-2xl font-bold text-gray-800 text-center mb-8">{{ display_title }}</h1>
+
+            <div class="absolute left-8 top-20 z-10 space-y-4 text-#20430C">
+                <select id="compareType" class="block w-56 p-2 border rounded shadow-sm bg-white" onchange="handleCompareChange()">
+                    <option value="category" {{ 'selected' if not current_cat }}>Category to Category</option>
+                    <option value="subcategory" {{ 'selected' if current_cat }}>Sub-category to Sub-category</option>
+                </select>
+
+                <select id="subCatSelect" class="{{ 'hidden' if not current_cat }} block w-56 p-2 border rounded shadow-sm bg-white border-blue-400">
+                    <option value="">-- Choose Category --</option>
+                    {% for cat in ['housing', 'utilities', 'transportation', 'food', 'children', 'health', 'personal_care', 'entertainment'] %}
+                    <option value="{{ cat }}" {{ 'selected' if current_cat == cat }}>{{ cat.capitalize() }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="absolute right-8 top-20 z-10 text-[#20430C]">
+                <select id="chartType" class="block w-32 p-2 border rounded shadow-sm bg-white font-bold" onchange="updateChartType()">
+                    <option value="pie">PIE</option>
+                    <option value="bar">BAR</option>
+                    <option value="line">LINE</option>
+                </select>
+            </div>
+
+            <div class="max-w-3xl mx-auto mt-16 bg-white p-10 rounded-3xl shadow-lg border border-gray-100">
+                <canvas id="expenseChart"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const labels = {{ labels | tojson }};
+        const dataValues = {{ values | tojson }};
+        let myChart;
+        const ctx = document.getElementById('expenseChart').getContext('2d');
+
+        function initChart(type) {
+    if (myChart) myChart.destroy();
+
+    const totalAmount = dataValues.reduce((a, b) => a + b, 0);
+
+    if (dataValues.length === 0 || totalAmount === 0) {
+        const canvas = document.getElementById('expenseChart');
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = "20px sans-serif";
+        ctx.fillStyle = "#9CA3AF"; 
+        ctx.textAlign = "center";
+        ctx.fillText("No Data", canvas.width / 2, canvas.height / 2);
+        return; 
+    }
+   
+    myChart = new Chart(ctx, {
+        type: type,
+        data: {
+            labels: labels,
+            datasets: [{
+                data: dataValues,
+                backgroundColor: ['#4A6C3F', '#2B3D23', '#EEF4E3', '#6B8E5E', '#8DB082', '#C3D898', '#D9E6C0', '#1B2616'],
+                borderWidth: 2,
+                borderColor: '#35542A'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const val = context.parsed || 0;
+                            const perc = ((val / totalAmount) * 100).toFixed(1);
+                            return ` $${val.toFixed(2)} (${perc}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+        function handleCompareChange() {
+            const type = document.getElementById('compareType').value;
+            if (type === 'category') window.location.href = '/graph?week={{ current_offset }}';
+            else document.getElementById('subCatSelect').classList.remove('hidden');
+        }
+
+        document.getElementById('subCatSelect').onchange = function() {
+            const cat = this.value;
+            if (cat) window.location.href = `/graph?category=${cat}&week={{ current_offset }}`;
+        };
+
+        function updateChartType() {
+            initChart(document.getElementById('chartType').value);
+        }
+
+        initChart('pie');
+    </script>
+
+<script>
+    let timeout;
+
+    function resetTimer() {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            window.location.href = "/logout";
+        }, 15 * 60 * 1000); // 15 minutes
+    }
+
+    // Reset timer on any user activity
+    window.onload = resetTimer;
+    document.onmousemove = resetTimer;
+    document.onkeypress = resetTimer;
+    document.onclick = resetTimer;
+    document.onscroll = resetTimer;
+</script>
+
+</body>
+
+</html>

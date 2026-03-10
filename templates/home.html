@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Zhuhu Expense</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="bg-gray-100 font-sans flex h-screen overflow-hidden">
+
+    <aside class="w-64 bg-white shadow-md flex flex-col justify-between hidden md:flex">
+        <div class="p-6">
+            <h2 class="text-2xl font-bold text-[#4B556A] mb-8">Zhuhu Expense</h2>
+            <nav class="space-y-4">
+                <a href="/home" class="block text-[#89413D] font-bold bg-[#FFC3C0] py-2 px-4 rounded">HOME</a>
+                <a href="/edit" class="block text-gray-600 hover:bg-[#FFFFD2] py-2 px-4 rounded">EDIT EXPENSES</a>
+                <a href="/graph" class="block text-gray-600 hover:bg-[#BDDCB3] py-2 px-4 rounded">VIEW GRAPH</a>
+                <a href="/report" class="block text-gray-600 hover:bg-[#D4E0FA] py-2 px-4 rounded">VIEW REPORT</a>
+                <a href="/goals" class="block text-gray-600 hover:bg-[#BCB2E6] py-2 px-4 rounded">GOALS</a>
+                <a href="/chat" class="block text-gray-600 hover:bg-[#F0C7F0] py-2 px-4 rounded">TALK TO AI CHATBOT</a>
+            </nav>
+        </div>
+        <div class="p-6 border-t">
+            <a href="/" class="block text-center w-full border border-red-500 text-red-500 hover:bg-red-50 py-2 rounded">Log out</a>
+        </div>
+    </aside>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+<main class="flex-1 p-8 overflow-y-auto bg-[#FFC3C0]">
+    <div class="max-w-6xl"> 
+        <h1 class="text-4xl font-bold text-[#c03f49] mb-6">Home Dashboard</h1>
+        
+        <h2 class="text-[#89413D] font-bold text-2xl mb-5">Welcome!</h2>
+
+        <div class="flex flex-row gap-8 items-start">
+            
+            <div class="w-2/3 min-w-[500px] bg-white p-6 rounded-xl shadow-sm border">
+                <h2 class="text-xl font-bold mb-4 uppercase">Weekly Spending Details</h2>
+                
+                <div class="mb-4 text-xs text-gray-500">
+                    <span>Sort by Amount:</span>
+                    <a href="{{ url_for('home', sort='asc') }}" class="underline hover:text-red-500">Least to Greatest</a> | 
+                    <a href="{{ url_for('home', sort='desc') }}" class="underline hover:text-red-500">Greatest to Least</a> |
+                    <a href="{{ url_for('home') }}" class="underline hover:text-red-500">Default</a>
+                </div>
+
+                <div class="overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="border-b text-xs uppercase text-gray-400">
+                                <th class="p-3">Category</th>
+                                <th class="p-3">Amount</th>
+                                <th class="p-3 text-right">Percent</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for table, amount in category_totals.items() %}
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="p-3 font-bold text-gray-700 uppercase text-sm">{{ table.replace('_', ' ') }}</td>
+                                <td class="p-3">${{ "{:,.2f}".format(amount) }}</td>
+                                <td class="p-3 text-right text-[#89413D] font-bold">{{ percentages[table] }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <a href="/edit" class="mt-6 inline-block border-2 px-4 py-2 rounded font-bold text-gray-400 hover:text-gray-600">
+                    Input new data
+                </a>
+            </div>
+
+            <div class="w-1/2 flex flex-col gap-5">
+                
+                <div class="bg-white p-8 rounded-xl shadow-sm border flex flex-col justify-center items-center text-center">
+                    <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">Total Expense (Week)</h2>
+                    <p class="text-5xl font-black text-[#89413D]">${{ "{:,.2f}".format(grand_total) }}</p>
+                    <div class="mt-4 px-3 py-1 bg-[#FFC3C0] text-red-700 text-xs font-bold rounded-full uppercase">Current Week</div>
+                </div>
+
+                <div class="bg-white p-8 rounded-xl shadow-sm border flex flex-col justify-center items-center text-center">
+                    <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">Total Expense (Month)</h2>
+                    <p class="text-5xl font-black text-gray-800">${{ "{:,.2f}".format(monthly_total) }}</p>
+                    <div class="mt-4 px-3 py-1 bg-[#FFC3C0] text-gray-600 text-xs font-bold rounded-full uppercase">This Month</div>
+                </div>
+
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+                <div class="flex-1 bg-white p-6 rounded-xl shadow-sm border flex flex-col items-center">
+    <h3 class="text-sm font-bold text-gray-400 uppercase mb-4 self-start">Spending Breakdown</h3>
+    
+    <div class="relative w-full h-full flex-1">
+        <canvas id="expenseChart"></canvas>
+    </div>
+</div>
+
+<script>
+    const ctx = document.getElementById('expenseChart').getContext('2d');
+    
+    const labels = {{ category_totals.keys() | list | tojson }};
+    const dataValues = {{ category_totals.values() | list | tojson }};
+
+    new Chart(ctx, {
+        type: 'doughnut', 
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Expenses',
+                data: dataValues,
+                backgroundColor: [
+                    '#89413D', '#c03f49', '#FFC3C0', '#fecaca', 
+                    '#ef4444', '#b91c1c', '#7f1d1d', '#450a0a'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, 
+            plugins: {
+            legend: {
+            position: 'right', 
+        }
+    }
+}
+    });
+</script>
+</main>
+
+<script>
+    let timeout;
+
+    function resetTimer() {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            window.location.href = "/logout";
+        }, 15 * 60 * 1000); // 15 minutes
+    }
+
+    // Reset timer on any user activity
+    window.onload = resetTimer;
+    document.onmousemove = resetTimer;
+    document.onkeypress = resetTimer;
+    document.onclick = resetTimer;
+    document.onscroll = resetTimer;
+</script>
+
+</body>
+</html>

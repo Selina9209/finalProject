@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zhuhu Expense - Edit Expenses</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans flex h-screen overflow-hidden">
+
+    <aside class="w-64 bg-white shadow-md flex flex-col justify-between hidden md:flex">
+        <div class="p-6">
+            <h2 class="text-2xl font-bold text-blue-600 mb-8">Zhuhu Expense</h2>
+            <nav class="space-y-4">
+                <a href="home" class="block text-gray-600 hover:bg-[#FFC3C0] py-2 px-4 rounded">HOME</a>
+                <a href="edit" class="block text-[#DCCC3E] font-bold bg-[#FFFFD2] py-2 px-4 rounded">EDIT EXPENSES</a>
+                <a href="graph" class="block text-gray-600 hover:bg-[#BDDCB3] py-2 px-4 rounded">VIEW GRAPH</a>
+                <a href="report" class="block text-gray-600 hover:bg-[#D4E0FA] py-2 px-4 rounded">VIEW REPORT</a>
+                <a href="goals" class="block text-gray-600 hover:bg-[#BCB2E6] py-2 px-4 rounded">GOALS</a>
+                <a href="chat" class="block text-gray-600 hover:bg-[#F0C7F0] py-2 px-4 rounded">TALK TO AI CHATBOT</a>
+            </nav>
+        </div>
+        <div class="p-6 border-t">
+            <a href="/logout" class="block text-center w-full border border-red-500 text-red-500 hover:bg-red-50 py-2 rounded">Log out</a>
+        </div>
+    </aside>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <main class="flex-1 p-8 overflow-y-auto bg-[#FFFFD2]">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Manage Expenses</h1>
+        
+        <div class="bg-[#FFFFD2] rounded-lg shadow-md overflow-hidden">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-[#FFED47] text-gray-700">
+                        <th class="p-4 font-semibold w-1/4">Date</th>
+                        <th class="p-4 font-semibold w-1/2">Category / Details</th>
+                        <th class="p-4 font-semibold w-1/4 text-right">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category_name, info in data.items() %}
+                        <tr class="bg-[#FFF38A] border-b-2 border-gray-300">
+                            <td class="p-4"></td>
+                            <td class="p-4 font-bold text-gray-800 uppercase">{{ category_name }}</td>
+                            <td class="p-4 font-bold text-gray-800 text-right">
+                                ${{ "{:,.2f}".format(info['total']) }}
+                            </td>
+                        </tr>
+                        
+                        {% for item in info['rows'] %}
+                        <tr class="border-b border-gray-100 bg-[#FFFFFF] hover:bg-gray-50">
+                            <td class="p-4">
+                                <form action="/add_expense" method="POST" class="flex items-center gap-2">
+                                    <input type="hidden" name="item_id" value="{{ item['item_id'] }}">
+                                    
+                                    <div class="relative">
+                                        <span class="absolute left-2 top-1.5 text-gray-400 text-sm">$</span>
+                                        <input type="number" name="new_amount" step="0.01" placeholder="0.00" 
+                                            class="pl-5 pr-2 py-1 border rounded w-24 text-sm">
+                                    </div>
+                                    
+                                    <button type="submit" class="bg-[#DCCC3E] text-[#232006] px-2 py-1 rounded text-xs">
+                                        ENTER
+                                    </button>
+                                </form>
+                            </td>
+
+                            <td class="p-4 text-gray-700">
+                                <div class="font-medium">{{ item['item_name'] }}</div>
+                                <div class="text-[#F0C837] text-xs italic">{{ item['date'] }}</div>
+                            </td>
+
+                            <td class="p-4 text-gray-900 text-right font-bold">
+                                ${{ "{:,.2f}".format(item['amount']) }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        let timeout;
+
+        function resetTimer() {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                window.location.href = "/logout";
+            }, 15 * 60 * 1000); 
+        }
+
+        window.onload = resetTimer;
+        document.onmousemove = resetTimer;
+        document.onkeypress = resetTimer;
+        document.onclick = resetTimer;
+        document.onscroll = resetTimer;
+    </script>
+
+</body>
+</html>

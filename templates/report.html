@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Zhuhu Expense - Reports</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans flex h-screen overflow-hidden">
+
+    <aside class="w-64 bg-white shadow-md flex flex-col justify-between hidden md:flex">
+        <div class="p-6">
+            <a href="/home"><h2 class="text-2xl font-bold text-[#4B556A] mb-8">Zhuhu Expense</h2></a>
+            <nav class="space-y-4">
+                <a href="/home" class="block text-gray-600 hover:bg-[#FFC3C0] py-2 px-4 rounded">HOME</a>
+                <a href="/edit" class="block text-gray-600 hover:bg-[#FFFFD2] py-2 px-4 rounded">EDIT EXPENSES</a>
+                <a href="/graph" class="block text-gray-600 hover:bg-[#BDDCB3] py-2 px-4 rounded">VIEW GRAPH</a>
+                <a href="/report" class="block text-[#4B556A] font-bold bg-[#D4E0FA] py-2 px-4 rounded">VIEW REPORT</a>
+                <a href="/goals" class="block text-gray-600 hover:bg-[#BCB2E6] py-2 px-4 rounded">GOALS</a>
+                <a href="/chat" class="block text-gray-600 hover:bg-[#F0C7F0] py-2 px-4 rounded">TALK TO AI CHATBOT</a>
+
+            </nav>
+        </div>
+        <div class="p-6 border-t">
+            <a href="/" class="block text-center w-full border border-red-500 text-red-500 hover:bg-red-50 py-2 rounded">Log out</a>
+        </div>
+    </aside>
+
+    <main class="flex-1 p-8 overflow-y-auto bg-[#D4E0FA]">
+        <div class="max-w-5xl mx-auto bg-white p-10 rounded-3xl shadow-lg border-t-4 border-[#2B4172]">
+            <h1 class="text-3xl font-bold text-[#2B4172] mb-8">Weekly Reports</h1>
+            
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b-2 border-gray-100 text-[#384D7C] uppercase text-xs tracking-widest">
+                        <th class="p-4">Report File</th>
+                        <th class="p-4">Week Range (Sun - Sat)</th>
+                        <th class="p-4 text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+    {% for r in reports %}
+    <tr class="border-b hover:bg-blue-50">
+        <td class="p-4">
+            <a href="/download_pdf?start={{ r.start }}" class="text-blue-600 font-bold hover:underline flex items-center gap-2">
+                PDF DOWNLOAD
+            </a>
+        </td>
+        <td class="p-4 text-gray-700 font-medium">
+            {{ r.range }}
+        </td>
+        <td class="p-4 text-center">
+            <button onclick="window.print()" class="bg-[#84ABCC] hover:bg-[#508DC2] text-gray-600 px-4 py-2 rounded-lg font-bold text-sm border">
+                PRINT
+            </button>
+        </td>
+    </tr>
+    {% endfor %}
+    
+    {% if reports|length == 1 %}
+    <tr>
+        <td colspan="3" class="p-8 text-center text-[#4176A4] italic">
+            This week's report will be available this Saturday.
+        </td>
+    </tr>
+    {% endif %}
+</tbody>
+            </table>
+        </div>
+    </main>
+
+<script>
+    let timeout;
+
+    function resetTimer() {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            window.location.href = "/logout";
+        }, 15 * 60 * 1000); // 15 minutes
+    }
+
+    // Reset timer on any user activity
+    window.onload = resetTimer;
+    document.onmousemove = resetTimer;
+    document.onkeypress = resetTimer;
+    document.onclick = resetTimer;
+    document.onscroll = resetTimer;
+</script>
+
+</body>
+</html>

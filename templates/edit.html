@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zhuhu Expense - Edit Expenses</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans flex h-screen overflow-hidden">
+
+    <aside class="w-64 bg-white shadow-md flex flex-col justify-between hidden md:flex">
+        <div class="p-6">
+            <h2 class="text-2xl font-bold text-blue-600 mb-8">Zhuhu Expense</h2>
+            <nav class="space-y-4">
+                <a href="home" class="block text-gray-600 hover:bg-[#FFC3C0] py-2 px-4 rounded">HOME</a>
+                <a href="edit" class="block text-[#DCCC3E] font-bold bg-[#FFFFD2] py-2 px-4 rounded">EDIT EXPENSES</a>
+                <a href="graph" class="block text-gray-600 hover:bg-[#BDDCB3] py-2 px-4 rounded">VIEW GRAPH</a>
+                <a href="report" class="block text-gray-600 hover:bg-[#D4E0FA] py-2 px-4 rounded">VIEW REPORT</a>
+                <a href="goals" class="block text-gray-600 hover:bg-[#BCB2E6] py-2 px-4 rounded">GOALS</a>
+                <a href="chat" class="block text-gray-600 hover:bg-[#F0C7F0] py-2 px-4 rounded">TALK TO AI CHATBOT</a>
+            </nav>
+        </div>
+        <div class="p-6 border-t">
+            <a href="/" class="block text-center w-full border border-red-500 text-red-500 hover:bg-red-50 py-2 rounded">Log out</a>
+        </div>
+    </aside>
+
+    <main class="flex-1 p-8 overflow-y-auto bg-[#FFFFD2]">
+        
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-[#F0C837]">Edit Expenses</h1>
+            <div class="space-x-3">
+                <a href="{{ url_for('add_expense') }}" class="mt-6 bg-[#B58E00] inline-block border-2 px-4 py-2 rounded font-bold text-[#FFED47] hover:text-[#CFC03B]">
+                    ADD EXPENSE
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-[#FFED47] text-gray-700">
+                        <th class="p-4 font-semibold w-1/4">Date</th>
+                        <th class="p-4 font-semibold w-1/2">Category / Details</th>
+                        <!-- Two sub-columns: Default and Current -->
+                        <th class="p-4 font-semibold text-right">Default</th>
+                        <th class="p-4 font-semibold text-right">Current Spent</th>
+                        <th class="p-4 w-12 text-center"></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for category_name, info in data.items() %}
+
+                        <!-- Category header row — shows sum of defaults and sum of current spent -->
+                        <tr class="bg-[#FFF38A] border-b border-gray-300">
+                            <td class="p-4"></td>
+                            <td class="p-4 font-bold text-gray-800 uppercase">{{ category_name }}:</td>
+                            <!-- Sum of default amounts for this category -->
+                            <td class="p-4 font-bold text-gray-500 text-right">
+                                ${{ "{:,.2f}".format(info['fixed_total']) }}
+                            </td>
+                            <!-- Sum of current spent amounts for this category -->
+                            <td class="p-4 font-bold text-gray-800 text-right">
+                                ${{ "{:,.2f}".format(info['rows'] | sum(attribute='current_spent')) }}
+                            </td>
+                            <td class="p-4"></td>
+                        </tr>
+
+                        <!-- Individual item rows -->
+                        {% for item in info['rows'] %}
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="p-4 text-[#F0C837] text-sm italic">Monthly Value</td>
+                            <td class="p-4 pl-12 text-gray-700">
+                                {{ item['item_name'] }}
+                                {% if item['type'] == 'Fixed' %}
+                                    <span class="ml-2 text-[10px] bg-[#FFFFD2] text-[#FFED47] px-2 py-0.5 rounded font-bold">FIXED</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Default amount (grayed out, baseline) -->
+                            <td class="p-4 text-[gray-400] text-right">
+                                ${{ "{:,.2f}".format(item['default_amount']) }}
+                            </td>
+
+                            <!-- Current spent (updates as user adds expenses) -->
+                            <td class="p-4 text-right">
+                                {% if item['current_spent'] > item['default_amount'] %}
+                                    <!-- Spent more than default — show in red -->
+                                    <span class="text-[#FFE713] font-semibold">
+                                        ${{ "{:,.2f}".format(item['current_spent']) }}
+                                    </span>
+                                {% elif item['current_spent'] < item['default_amount'] %}
+                                    <!-- Spent less than default — show in green -->
+                                    <span class="text-[green-600] font-semibold">
+                                        ${{ "{:,.2f}".format(item['current_spent']) }}
+                                    </span>
+                                {% else %}
+                                    <!-- Equal to default — neutral -->
+                                    <span class="text-gray-700 font-semibold">
+                                        ${{ "{:,.2f}".format(item['current_spent']) }}
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <td class="p-4 text-center">
+                                <div class="relative inline-block text-left group">
+                                    <button class="text-gray-400 hover:text-gray-800 font-bold p-1">⋮</button>
+                                    <div class="hidden group-hover:block absolute right-0 w-24 bg-white border shadow-lg rounded-md z-10">
+                                        <a href="{{ url_for('add_expense', item_id=item['item_id']) }}" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">Modify</a>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+
+<script>
+    function openModal() { document.getElementById('addModal').classList.remove('hidden'); }
+    function closeModal() { document.getElementById('addModal').classList.add('hidden'); }
+</script>
+
+<script>
+    let timeout;
+
+    function resetTimer() {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            window.location.href = "/logout";
+        }, 15 * 60 * 1000); // 15 minutes
+    }
+
+    // Reset timer on any user activity
+    window.onload = resetTimer;
+    document.onmousemove = resetTimer;
+    document.onkeypress = resetTimer;
+    document.onclick = resetTimer;
+    document.onscroll = resetTimer;
+</script>
+
+</body>
+</html>

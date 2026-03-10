@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zhuhu Expense - AI Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans flex h-screen overflow-hidden">
+
+    <aside class="w-64 bg-white shadow-md flex flex-col justify-between hidden md:flex">
+        <div class="p-6">
+            <h2 class="text-2xl font-bold text-blue-600 mb-8">Zhuhu Expense</h2>
+            <nav class="space-y-4">
+                <a href="home" class="block text-gray-600 hover:bg-[#FFC3C0] py-2 px-4 rounded">HOME</a>
+                <a href="edit" class="block text-gray-600 hover:bg-[#FFFFD2] py-2 px-4 rounded">EDIT EXPENSES</a>
+                <a href="graph" class="block text-gray-600 hover:bg-[#BDDCB3] py-2 px-4 rounded">VIEW GRAPH</a>
+                <a href="report" class="block text-gray-600 hover:bg-[#D4E0FA] py-2 px-4 rounded">VIEW REPORT</a>
+                <a href="goals" class="block text-gray-600 hover:bg-[#BCB2E6] py-2 px-4 rounded">GOALS</a>
+                <a href="chat" class="block text-[#5B2547] font-bold bg-[#F0C7F0] py-2 px-4 rounded">TALK TO AI CHATBOT</a>
+            </nav>
+        </div>
+        <div class="p-6 border-t">
+            <a href="/" class="block text-center w-full border border-red-500 text-red-500 hover:bg-red-50 py-2 rounded">Log out</a>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col p-8 h-full bg-[#F0C7F0]">
+        
+        <div class="flex-1 bg-[#FFEBFF] p-6 overflow-y-auto border-x border-gray-200 flex flex-col gap-4">
+            
+            <div class="max-w-3xl mx-auto p-6">
+    <h1 class="text-2xl font-bold mb-4 text-[#5B2547]">Expense Assistant</h1>
+    
+    <div id="chat-window" class="h-96 overflow-y-auto border-2 border-gray-200 rounded-lg bg-white p-4 mb-4 flex flex-col gap-3 shadow-inner">
+        <div class="bg-[#FFCFE0] p-3 rounded-lg self-start max-w-[80%] text-[#792259] shadow-lg border-t-4 border-[#792259]">
+            <b>Selina:</b> Hello! I'm your budget coach. How can I help you with your expenses today?
+        </div>
+    </div>
+
+    <div class="flex gap-2">
+        <input type="text" id="user-msg" 
+               class="flex-1 border-2 border-gray-300 p-3 rounded-lg focus:outline-none focus:border-[#792259]" 
+               placeholder="Ask me something (e.g., 'How can I save on food?')..."
+               onkeypress="if(event.key === 'Enter') askAI()">
+        
+        <button onclick="askAI()" 
+                class="bg-[#792259] hover:bg-[#451232] text-white font-bold py-2 px-6 rounded-lg transition duration-200">
+            Send
+        </button>
+    </div>
+</div>
+
+<script>
+async function askAI() {
+    const input = document.getElementById('user-msg');
+    const window = document.getElementById('chat-window');
+    const msg = input.value;
+    
+    if (!msg) return;
+
+    window.innerHTML += `<div class="bg-[#451232] text-white p-3 rounded-lg self-end max-w-[80%] shadow-md">
+                            <b>You:</b> ${msg}
+                         </div>`;
+    input.value = '';
+    window.scrollTop = window.scrollHeight;
+
+    try {
+        const response = await fetch('/get_ai_response', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({message: msg})
+        });
+
+        const data = await response.json();
+
+        window.innerHTML += `<div class="bg-[#FFCFE0] p-3 rounded-lg self-start max-w-[80%] text-[#792259] shadow-sm">
+                                <b>Selina:</b> ${data.response}
+                             </div>`;
+        window.scrollTop = window.scrollHeight;
+    } catch (error) {
+        window.innerHTML += `<div class="text-red-500 text-center text-xs">Error connecting to AI. Check your console.</div>`;
+    }
+}
+</script>
+    </main>
+<script>
+    let timeout;
+
+    function resetTimer() {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            window.location.href = "/logout";
+        }, 15 * 60 * 1000); // 15 minutes
+    }
+
+    // Reset timer on any user activity
+    window.onload = resetTimer;
+    document.onmousemove = resetTimer;
+    document.onkeypress = resetTimer;
+    document.onclick = resetTimer;
+    document.onscroll = resetTimer;
+</script>
+
+</body>
+</html>
