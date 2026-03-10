@@ -1,0 +1,43 @@
+.dashboard-grid {
+    display: flex;       
+    gap: 2rem;           
+    width: 100%;
+}
+
+.spending-section {
+    width: 50%;          
+    min-width: 450px;   
+}
+
+body {
+    background-color: #6c4242; 
+}
+
+h1 {
+    color: #89413D; 
+}
+
+.table-container thead {
+    background-color: rgb(51, 13, 13);
+}
+
+.table-container thead th {
+    color: rgb(26, 194, 118); 
+}
+
+.bg-white {
+    background-color: #ffffff;
+    border-top: 4px solid #89413D;
+}
+
+.input-data-btn {
+    background-color: #340000; 
+    color: #234884;
+    border: none;
+    transition: bg 0.3s ease;
+}
+
+.input-data-btn:hover {
+    background-color: #a7c79b;
+    cursor: pointer;
+}
