@@ -68,55 +68,57 @@
     </main>
 
     <script>
-        const labe ls = {{ labels | tojson }};
+        const labels = {{ labels | tojson }};
         const dataValues = {{ values | tojson }};
         let myChart;
         const ctx = document.getElementById('expenseChart').getContext('2d');
 
         function initChart(type) {
-    if (myChart) myChart.destroy();
+            if (myChart) myChart.destroy();
 
-    const totalAmount = dataValues.reduce((a, b) => a + b, 0);
+            const totalAmount = dataValues.reduce((a, b) => a + b, 0);
 
-    if (dataValues.length === 0 || totalAmount === 0) {
-        const canvas = document.getElementById('expenseChart');
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.font = "20px sans-serif";
-        ctx.fillStyle = "#9CA3AF"; 
-        ctx.textAlign = "center";
-        ctx.fillText("No Data", canvas.width / 2, canvas.height / 2);
-        return; 
-    }
-   
-    myChart = new Chart(ctx, {
-        type: type,
-        data: {
-            labels: labels,
-            datasets: [{
-                data: dataValues,
-                backgroundColor: ['#4A6C3F', '#2B3D23', '#EEF4E3', '#6B8E5E', '#8DB082', '#C3D898', '#D9E6C0', '#1B2616'],
-                borderWidth: 2,
-                borderColor: '#35542A'
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { position: 'bottom' },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const val = context.parsed || 0;
-                            const perc = ((val / totalAmount) * 100).toFixed(1);
-                            return ` $${val.toFixed(2)} (${perc}%)`;
+            if (dataValues.length === 0 || totalAmount === 0) {
+                const canvas = document.getElementById('expenseChart');
+                canvas.width = 400;
+                canvas.height = 200;
+                const ctx2 = canvas.getContext('2d');
+                ctx2.clearRect(0, 0, canvas.width, canvas.height);
+                ctx2.font = "20px sans-serif";
+                ctx2.fillStyle = "#9CA3AF";
+                ctx2.textAlign = "center";
+                ctx2.fillText("No Data", canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            myChart = new Chart(ctx, {
+                type: type,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dataValues,
+                        backgroundColor: ['#4A6C3F', '#2B3D23', '#EEF4E3', '#6B8E5E', '#8DB082', '#C3D898', '#D9E6C0', '#1B2616'],
+                        borderWidth: 2,
+                        borderColor: '#35542A'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const val = context.parsed || 0;
+                                    const perc = ((val / totalAmount) * 100).toFixed(1);
+                                    return ` $${val.toFixed(2)} (${perc}%)`;
+                                }
+                            }
                         }
                     }
                 }
-            }
+            });
         }
-    });
-}
 
         function handleCompareChange() {
             const type = document.getElementById('compareType').value;
@@ -133,26 +135,25 @@
             initChart(document.getElementById('chartType').value);
         }
 
+        initChart('pie');
     </script>
 
-<script>
-    let timeout;
+    <script>
+        let timeout;
 
-    function resetTimer() {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => {
-            window.location.href = "/logout";
-        }, 15 * 60 * 1000); // 15 minutes
-    }
+        function resetTimer() {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                window.location.href = "/logout";
+            }, 15 * 60 * 1000);
+        }
 
-    // Reset timer on any user activity
-    window.onload = resetTimer;
-    document.onmousemove = resetTimer;
-    document.onkeypress = resetTimer;
-    document.onclick = resetTimer;
-    document.onscroll = resetTimer;
-</script>
+        window.onload = resetTimer;
+        document.onmousemove = resetTimer;
+        document.onkeypress = resetTimer;
+        document.onclick = resetTimer;
+        document.onscroll = resetTimer;
+    </script>
 
 </body>
-
 </html>

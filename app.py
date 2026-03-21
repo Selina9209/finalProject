@@ -3,15 +3,16 @@ import sqlite3 # Library to interact with SQLite databases
 import os # Provides access to operating system functions
 
 from groq import Groq # Groq client for accessing the LLaMA AI model
+# pip install groq
 
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify, Response # Flask web framework tools
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, make_response # Flask web framework tools
+# pip install flask
 
 from datetime import datetime, timedelta # For working with dates and time differences
 
 # Library for generating PDF files
 from fpdf import FPDF
-# Used to create custom HTTP responses
-from flask import make_response
+# pip install fpdf
 
 #loading api key from .env file :)
 # python3 -m pip install python-dotenv
@@ -855,21 +856,19 @@ def download_pdf():
 # Defines the login page route, accepts both GET and POST
 @app.route("/", methods=["GET", "POST"])
 def login():
-    # If the form was submitted
+    error = None  # no error by default
     if request.method == "POST":
-        # Get the entered password
+        # Get entered password
         password = request.form.get("user_password")
-        # Get the entered username
+        # Get entered username
         usern = request.form.get("username_")
-        # Check credentials against hardcoded values
         if password == "1234567" and usern.lower() == "ddlin":
-            # Mark user as logged in
+            # Marks users as logged in
             session['login'] = True
-            # Redirect to home page
             return redirect(url_for("home"))
-    # Render login page (for GET or failed login)
-    return render_template("login.html")
-
+        else:
+            error = "Invalid username or password"  
+    return render_template('login.html', error=error)
 
 # Route for adding/updating an expense
 @app.route("/add_expense", methods=["GET", "POST"])
