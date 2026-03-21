@@ -928,7 +928,6 @@ def add_expense():
         WHERE er.record_id IN (
             SELECT MAX(record_id) FROM expense_records GROUP BY item_id
         )
-        AND c.name != 'discretionary_cash'
         ORDER BY c.category_id, ei.item_id
     """).fetchall()
     # Close the database connection
